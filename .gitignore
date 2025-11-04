@@ -1,0 +1,38 @@
+# Entornos virtuales (NO subir - cada PC crea el suyo)
+.venv/
+venv/
+ENV/
+env/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Base de datos (NO subir - contiene datos locales)
+access_control.db
+*.db
+*.sqlite
+
+# Fotos capturadas (NO subir - son datos de ejecución)
+access_photos/
+temp_images/
+exports/
+
+# Configuración local (cada PC tiene la suya)
+.env
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+
+# Logs
+*.log
