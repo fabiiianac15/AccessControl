@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Portero · Kiosco</title>
+  <link rel="stylesheet" href="/static/kiosk.css">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+</head>
+<body data-phase="guide" data-direction="">
+<div class="stage" id="stage">
+  <header class="top"><span><span id="zone-name"></span> · <span id="kiosk-name"></span></span><span class="clock" id="clock"></span></header>
+  <main class="center">
+    <div class="ring">
+      <video id="video" autoplay playsinline muted></video>
+      <div class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+    </div>
+    <div class="message" role="status" aria-live="polite">
+      <h1 id="title">Preparando la cámara</h1>
+      <p id="subtitle"></p>
+      <div class="steps" id="steps" aria-hidden="true"></div>
+    </div>
+  </main>
+  <footer class="foot"><button class="ghost" id="pin-toggle" type="button" hidden>Entrar con PIN</button></footer>
+</div>
+
+<div class="pad-wrap" id="pad-wrap" hidden>
+  <h2>Escribe tu PIN</h2>
+  <div class="dots" id="dots" aria-hidden="true"></div>
+  <div class="pad">
+    <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+    <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+    <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+    <button type="button" data-key="close" aria-label="Cerrar">✕</button><button type="button" data-key="0">0</button><button type="button" data-key="back" aria-label="Borrar">⌫</button>
+  </div>
+</div>
+
+<section class="setup" id="setup" hidden>
+  <h1 id="setup-title"></h1>
+  <p id="setup-text"></p>
+</section>
+<script src="/static/js/kiosk.js"></script>
+</body>
+</html>

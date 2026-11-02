@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui %}
+{% block title %}{{ person.full_name }}{% endblock %}
+{% block content %}
+{% set writer = admin.role == 'admin' %}
+<div class="page-head">
+  <div>
+    <h1>{{ person.full_name }}</h1>
+    <p>{{ person.group_name or 'Sin grupo' }}{% if not person.active %} · Inactiva{% endif %}</p>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="stack">
+    <section class="panel">
+      <h2>Rostro</h2>
+      {% if consent %}
+        <p class="small muted">Autorizó el {{ local_time(consent.granted_at, '%d/%m/%Y') }} (versión {{ consent.policy_version }}). Soporte: {{ consent.evidence }}.</p>
+        <p>{{ samples }} muestras guardadas{% if samples < min_samples %}. Faltan {{ min_samples - samples }} para un registro confiable{% endif %}.</p>
+        {% if writer %}
+        <div class="actions">
+          <a class="btn btn-primary" href="/personas/{{ person.id }}/rostro">{{ 'Agregar muestras' if samples else 'Registrar rostro' }}</a>
+          <form method="post" action="/personas/{{ person.id }}/autorizacion/retirar">
+            {{ ui.csrf_field(admin) }}
+            <button class="btn btn-danger" type="submit">Retirar autorización y borrar rostro</button>
+          </form>
+        </div>
+        {% endif %}
+      {% else %}
+        <p>El rostro es opcional. Sin autorización firmada, esta persona entra con PIN.</p>
+        {% if writer %}
+        <div><a class="btn" href="/personas/{{ person.id }}/autorizacion/imprimir">Imprimir formato de autorización</a></div>
+        <form class="form" method="post" action="/personas/{{ person.id }}/autorizacion">
+          {{ ui.csrf_field(admin) }}
+          <label class="field"><span>Soporte de la autorización</span>
+            <input type="text" name="evidence" required minlength="3" maxlength="200" placeholder="Formato firmado, carpeta 3, folio 12"></label>
+          <label class="check"><input type="checkbox" name="confirmed" value="1" required>
+            <span>{{ person.full_name }} firmó de forma libre la autorización, versión {{ policy_version }}.</span></label>
+          <div><button class="btn btn-primary" type="submit">Registrar autorización</button></div>
+        </form>
+        {% endif %}
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>PIN</h2>
+      <p>{% if person.pin_lookup %}Tiene un PIN activo. Nadie puede consultarlo: si lo olvida, genera otro.{% else %}Sin PIN. Es la alternativa para quien no autoriza el uso de su rostro.{% endif %}</p>
+      {% if writer %}
+      <div class="actions">
+        <form method="post" action="/personas/{{ person.id }}/pin">
+          {{ ui.csrf_field(admin) }}
+          <button class="btn" type="submit">{{ 'Generar otro PIN' if person.pin_lookup else 'Generar PIN' }}</button>
+        </form>
+        {% if person.pin_lookup %}
+        <form method="post" action="/personas/{{ person.id }}/pin/quitar">
+          {{ ui.csrf_field(admin) }}
+          <button class="btn btn-danger" type="submit">Quitar PIN</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endif %}
+    </section>
+    {% if writer %}
+    <section class="panel">
+      <h2>Datos</h2>
+      <form class="form" method="post" action="/personas/{{ person.id }}/editar">
+        {{ ui.csrf_field(admin) }}
+        <label class="field"><span>Nombre completo</span><input type="text" name="full_name" value="{{ person.full_name }}" required minlength="2" maxlength="120"></label>
+        <div class="row">
+          <label class="field"><span>Documento</span><input type="text" name="document" value="{{ person.document or '' }}" maxlength="40"></label>
+          <label class="field"><span>Grupo</span><input type="text" name="group_name" value="{{ person.group_name }}" maxlength="60"></label>
+        </div>
+        <label class="check"><input type="checkbox" name="active" value="1"{% if person.active %} checked{% endif %}><span>Activa. Si la desmarcas, no podrá entrar por ningún medio.</span></label>
+        <div><button class="btn" type="submit">Guardar</button></div>
+      </form>
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="stack">
+    <section class="panel">
+      <h2>Permisos</h2>
+      {% if grants %}
+      <table>
+        <tbody>
+        {% for grant in grants %}
+        <tr>
+          <td><strong>{{ grant.zone_name }}</strong><br>
+            <span class="small muted">{{ weekdays_label(grant.weekdays) }}, {{ minutes_label(grant.start_minute) }} a {{ minutes_label(grant.end_minute) }}
+            {% if grant.valid_until %}<br>Hasta {{ grant.valid_until }}{% endif %}{% if grant.valid_from %} · Desde {{ grant.valid_from }}{% endif %}</span></td>
+          {% if writer %}<td class="num">
+            <form method="post" action="/personas/{{ person.id }}/permisos/{{ grant.id }}/quitar">
+              {{ ui.csrf_field(admin) }}<button class="linklike" type="submit">Quitar</button>
+            </form></td>{% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="muted">Sin permisos: no puede entrar a ninguna zona.</p>{% endif %}
+
+      {% if writer %}
+      {% if zones %}
+      <form class="form" method="post" action="/personas/{{ person.id }}/permisos">
+        {{ ui.csrf_field(admin) }}
+        <label class="field"><span>Zona</span>
+          <select name="zone_id" required>{% for zone in zones %}<option value="{{ zone.id }}">{{ zone.name }}</option>{% endfor %}</select></label>
+        <div class="field"><span>Días</span>
+          <div class="days">
+            {% for day in weekdays %}
+            <label><input type="checkbox" name="days" value="{{ loop.index0 }}"{% if loop.index0 < 5 %} checked{% endif %}><span>{{ day }}</span></label>
+            {% endfor %}
+          </div></div>
+        <div class="row">
+          <label class="field"><span>Desde las</span><input type="time" name="start" value="06:00" required></label>
+          <label class="field"><span>Hasta las</span><input type="time" name="end" value="20:00" required></label>
+        </div>
+        <div class="row">
+          <label class="field"><span>Vigente desde (opcional)</span><input type="date" name="valid_from"></label>
+          <label class="field"><span>Vence (opcional)</span><input type="date" name="valid_until"></label>
+        </div>
+        <p class="hint">Un horario de 22:00 a 06:00 cubre el turno nocturno. Usa el vencimiento para visitantes.</p>
+        <div><button class="btn" type="submit">Agregar permiso</button></div>
+      </form>
+      {% else %}<p><a href="/puertas">Crea una zona</a> para poder dar permisos.</p>{% endif %}
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+
+<section class="panel panel-flush">
+  <div class="panel-title"><h2>Últimos movimientos</h2><a class="small" href="/eventos?q={{ person.full_name | urlencode }}">Ver todos</a></div>
+  {% if events %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Fecha</th><th>Zona</th><th>Método</th><th>Resultado</th><th>Detalle</th></tr></thead>
+    <tbody>{% for event in events %}
+      <tr><td class="time">{{ local_time(event.ts) }}</td><td>{{ event.zone_name or '' }}</td>
+      <td>{{ 'Rostro' if event.method == 'face' else 'PIN' }}</td><td>{{ ui.outcome_tag(event.outcome) }}</td>
+      <td class="muted small">{{ reasons.get(event.reason, event.reason) }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">Sin movimientos.</p>{% endif %}
+</section>
+
+{% if writer %}
+<section class="panel">
+  <h2>Derechos del titular</h2>
+  <p class="small muted">La supresión borra sus datos, plantillas y fotos. El historial queda con un número, sin nombre, para no romper la cadena de registros.</p>
+  <div class="actions"><a class="btn" href="/personas/{{ person.id }}/exportar">Exportar sus datos (JSON)</a></div>
+  <form class="row" method="post" action="/personas/{{ person.id }}/suprimir">
+    {{ ui.csrf_field(admin) }}
+    <label class="field"><span>Escribe «{{ person.full_name }}» para confirmar</span><input type="text" name="confirm" required autocomplete="off"></label>
+    <button class="btn btn-danger" type="submit">Suprimir persona</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

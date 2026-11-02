@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autorización · {{ person.full_name }}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<article class="sheet">
+  <h1>Autorización para el tratamiento de datos biométricos</h1>
+  <p class="small muted">Versión {{ policy_version }} · {{ today }}</p>
+  <p>Yo, <strong>{{ person.full_name }}</strong>{% if person.document %}, con documento {{ person.document }}{% endif %}, autorizo a <strong>{{ org_name }}</strong> a crear y guardar una plantilla numérica de mi rostro con la única finalidad de verificar mi identidad en sus puntos de control de acceso y registrar mis ingresos.</p>
+  <p>Me informaron lo siguiente:</p>
+  <ul>
+    <li>Los datos biométricos son datos sensibles según la Ley 1581 de 2012. Autorizar su tratamiento es voluntario.</li>
+    <li>Si no autorizo, o si retiro esta autorización después, puedo ingresar con un código PIN personal, sin ninguna sanción ni pérdida de mi acceso.</li>
+    <li>El sistema guarda una plantilla cifrada en servidores de la organización y descarta las imágenes usadas para crearla. La plantilla no se comparte con terceros.</li>
+    <li>Mis registros de acceso se conservan durante un plazo definido y luego se borran.</li>
+    <li>Puedo conocer, actualizar, rectificar y pedir la supresión de mis datos, revocar esta autorización y presentar quejas ante la Superintendencia de Industria y Comercio.</li>
+    <li>Para ejercer estos derechos escribo a: {{ privacy_contact }}.</li>
+  </ul>
+  <p>Firmo de forma libre, previa e informada.</p>
+  <div class="signature"><div>Firma</div><div>Fecha</div></div>
+  <div class="actions no-print"><a class="btn" href="/personas/{{ person.id }}">Volver</a></div>
+</article>
+</body>
+</html>

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui %}
+{% block title %}Puertas{% endblock %}
+{% block content %}
+{% set writer = admin.role == 'admin' %}
+<div class="page-head"><h1>Puertas</h1></div>
+
+{% if new_kiosk %}
+<div class="once" role="status">
+  <h2>Kiosco «{{ new_kiosk.name }}» creado</h2>
+  <p>Abre este enlace una vez en el equipo del kiosco. No se volverá a mostrar.</p>
+  <div class="secret">{{ new_kiosk.link }}</div>
+  {% if new_kiosk.door_secret %}
+  <p>Secreto para verificar la firma en el receptor de la puerta:</p>
+  <div class="secret">{{ new_kiosk.door_secret }}</div>
+  {% endif %}
+  <p class="small muted">Si el kiosco no está en este mismo equipo, el navegador exige HTTPS para usar la cámara. La guía de despliegue explica cómo activarlo.</p>
+</div>
+{% endif %}
+
+<section class="panel panel-flush">
+  <div class="panel-title"><h2>Kioscos</h2></div>
+  {% if kiosks %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Nombre</th><th>Zona</th><th>Última señal</th><th>Puerta</th><th>Opciones</th></tr></thead>
+    <tbody>{% for kiosk in kiosks %}
+      <tr>
+        <td>{{ kiosk.name }}{% if not kiosk.active %} <span class="tag tag-denied">Inactivo</span>{% endif %}</td>
+        <td>{{ kiosk.zone_name }}</td>
+        <td class="time">{{ local_time(kiosk.last_seen_at) }}</td>
+        <td>{% if kiosk.door_webhook_url %}<span class="tag">Webhook</span>{% else %}<span class="muted small">Solo registro</span>{% endif %}</td>
+        <td>
+          {% if writer %}
+          <form class="row" method="post" action="/puertas/kioscos/{{ kiosk.id }}/opciones">
+            {{ ui.csrf_field(admin) }}
+            <label class="check small"><input type="checkbox" name="liveness_required" value="1"{% if kiosk.liveness_required %} checked{% endif %}><span>Prueba de presencia</span></label>
+            <label class="check small"><input type="checkbox" name="allow_pin" value="1"{% if kiosk.allow_pin %} checked{% endif %}><span>PIN</span></label>
+            <label class="check small"><input type="checkbox" name="active" value="1"{% if kiosk.active %} checked{% endif %}><span>Activo</span></label>
+            <button class="btn" type="submit">Guardar</button>
+          </form>
+          <form method="post" action="/puertas/kioscos/{{ kiosk.id }}/borrar">
+            {{ ui.csrf_field(admin) }}<button class="linklike small" type="submit">Eliminar</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">Ningún kiosco todavía.</p>{% endif %}
+</section>
+
+{% if writer %}
+<div class="grid-2">
+  <section class="panel">
+    <h2>Nueva zona</h2>
+    <form class="form" method="post" action="/puertas/zonas">
+      {{ ui.csrf_field(admin) }}
+      <label class="field"><span>Nombre</span><input type="text" name="name" required minlength="2" maxlength="80" placeholder="Laboratorio de Redes"></label>
+      <label class="field"><span>Descripción (opcional)</span><input type="text" name="description" maxlength="200"></label>
+      <div><button class="btn" type="submit">Crear zona</button></div>
+    </form>
+  </section>
+  <section class="panel">
+    <h2>Nuevo kiosco</h2>
+    {% if zones %}
+    <form class="form" method="post" action="/puertas/kioscos">
+      {{ ui.csrf_field(admin) }}
+      <label class="field"><span>Nombre</span><input type="text" name="name" required minlength="2" maxlength="80" placeholder="Entrada principal"></label>
+      <label class="field"><span>Zona</span><select name="zone_id" required>{% for zone in zones %}<option value="{{ zone.id }}">{{ zone.name }}</option>{% endfor %}</select></label>
+      <label class="field"><span>URL de la puerta (opcional)</span><input type="url" name="door_webhook_url" maxlength="300" placeholder="http://192.168.1.50:9000/abrir">
+        <span class="hint">Portero envía aquí un aviso firmado al conceder un acceso.</span></label>
+      <div><button class="btn btn-primary" type="submit">Crear kiosco</button></div>
+    </form>
+    {% else %}<p class="muted">Primero crea una zona.</p>{% endif %}
+  </section>
+</div>
+{% endif %}
+
+<section class="panel panel-flush">
+  <div class="panel-title"><h2>Zonas</h2></div>
+  {% if zones %}
+  <table>
+    <thead><tr><th>Zona</th><th>Descripción</th><th class="num">Personas</th><th></th></tr></thead>
+    <tbody>{% for zone in zones %}
+      <tr><td>{{ zone.name }}</td><td class="muted">{{ zone.description }}</td><td class="num">{{ zone.people }}</td>
+      <td class="num">{% if writer %}<form method="post" action="/puertas/zonas/{{ zone.id }}/borrar">{{ ui.csrf_field(admin) }}<button class="linklike small" type="submit">Eliminar</button></form>{% endif %}</td></tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}<p class="empty">Ninguna zona todavía.</p>{% endif %}
+</section>
+{% endblock %}

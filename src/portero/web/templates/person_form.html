@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui %}
+{% block title %}Nueva persona{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Nueva persona</h1></div>
+<form class="form panel" method="post" action="/personas/nueva">
+  {{ ui.csrf_field(admin) }}
+  <label class="field"><span>Nombre completo</span><input type="text" name="full_name" required minlength="2" maxlength="120" autofocus></label>
+  <div class="row">
+    <label class="field"><span>Documento (opcional)</span><input type="text" name="document" maxlength="40"></label>
+    <label class="field"><span>Grupo (opcional)</span><input type="text" name="group_name" maxlength="60" placeholder="Monitores, Docentes..."></label>
+  </div>
+  <div class="actions"><button class="btn btn-primary" type="submit">Guardar</button><a class="btn" href="/personas">Cancelar</a></div>
+</form>
+{% endblock %}

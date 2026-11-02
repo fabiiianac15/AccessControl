@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Bitácora{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Bitácora</h1><p>Qué hizo cada administrador. Cada fila firma a la anterior.</p></div></div>
+{% for chain, label in [(event_chain, 'Eventos de acceso'), (audit_chain, 'Bitácora')] %}
+  {% if chain.ok %}
+  <div class="alert alert-ok">{{ label }}: íntegros, {{ chain.rows }} filas verificadas.</div>
+  {% else %}
+  <div class="alert alert-danger" role="alert"><strong>{{ label }}: alterados en la fila {{ chain.broken_id }}.</strong> {{ chain.detail }}. Revisa quién tuvo acceso al servidor.</div>
+  {% endif %}
+{% endfor %}
+<section class="panel panel-flush">
+  {% if rows %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Fecha</th><th>Quién</th><th>Acción</th><th>Sobre</th><th>Detalle</th></tr></thead>
+    <tbody>{% for row in rows %}
+      <tr><td class="time">{{ local_time(row.ts, '%d/%m %H:%M:%S') }}</td><td>{{ row.actor }}</td>
+      <td class="mono small">{{ row.action }}</td><td class="small">{{ row.subject }}</td><td class="muted small">{{ row.details }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">Sin acciones registradas.</p>{% endif %}
+</section>
+{% endblock %}

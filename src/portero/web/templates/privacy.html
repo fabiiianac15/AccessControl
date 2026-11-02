@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui %}
+{% block title %}Privacidad{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Privacidad</h1><p>Qué datos tiene este servidor y cuánto tiempo los conserva.</p></div></div>
+{% if purged %}
+<div class="notice" role="status">Se borraron {{ purged.events }} eventos y {{ purged.photos }} fotos anteriores a {{ local_time(purged.cutoff, '%d/%m/%Y') }}.</div>
+{% endif %}
+<section class="kpis">
+  <div class="kpi"><strong>{{ counts.total }}</strong><span>personas</span></div>
+  <div class="kpi"><strong>{{ counts.with_faces }}</strong><span>con plantilla facial</span></div>
+  <div class="kpi"><strong>{{ counts.with_pin }}</strong><span>con PIN</span></div>
+  <div class="kpi"><strong>{{ counts.events }}</strong><span>eventos guardados</span></div>
+</section>
+<div class="grid-2">
+  <section class="panel">
+    <h2>Configuración vigente</h2>
+    <dl class="facts">
+      <dt>Responsable</dt><dd>{{ settings.org_name }}</dd>
+      <dt>Contacto</dt><dd>{{ settings.privacy_contact }}</dd>
+      <dt>Retención</dt><dd>{{ settings.retention_days }} días</dd>
+      <dt>Evento más antiguo</dt><dd>{{ local_time(counts.oldest, '%d/%m/%Y') }}</dd>
+      <dt>Fotos de rechazos</dt><dd>{{ 'Activadas, cifradas' if settings.store_denied_photos else 'Desactivadas' }}</dd>
+      <dt>Formato vigente</dt><dd>Versión {{ policy_version }}</dd>
+    </dl>
+    <p class="hint">Se cambian con variables de entorno. Ver docs/privacidad.md.</p>
+  </section>
+  <section class="panel">
+    <h2>Aplicar retención ahora</h2>
+    <p>Borra los eventos y fotos más antiguos que el plazo de retención. Queda constancia en la bitácora.</p>
+    {% if admin.role == 'admin' %}
+    <form method="post" action="/privacidad/purgar">{{ ui.csrf_field(admin) }}
+      <button class="btn" type="submit">Aplicar retención</button></form>
+    {% endif %}
+    <p class="hint">Para automatizarlo, programa <code>portero purge</code> una vez al día.</p>
+  </section>
+</div>
+{% endblock %}

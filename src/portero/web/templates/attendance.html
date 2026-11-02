@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Asistencia{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Asistencia</h1><p>Primera y última marca autorizada de cada persona por día.</p></div>
+  <a class="btn" href="/asistencia.csv?desde={{ desde }}&hasta={{ hasta }}&grupo={{ grupo | urlencode }}">Descargar CSV</a>
+</div>
+<form class="row" method="get">
+  <label class="field"><span>Desde</span><input type="date" name="desde" value="{{ desde }}"></label>
+  <label class="field"><span>Hasta</span><input type="date" name="hasta" value="{{ hasta }}"></label>
+  <label class="field"><span>Grupo</span><select name="grupo"><option value="">Todos</option>
+    {% for group in groups %}<option{% if group == grupo %} selected{% endif %}>{{ group }}</option>{% endfor %}</select></label>
+  <button class="btn" type="submit">Filtrar</button>
+</form>
+<section class="panel panel-flush">
+  {% if rows %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Fecha</th><th>Persona</th><th>Grupo</th><th>Primera</th><th>Última</th><th class="num">Horas</th><th class="num">Marcas</th></tr></thead>
+    <tbody>{% for row in rows %}
+      <tr>
+        <td class="time">{{ row.day.strftime('%d/%m/%Y') }}</td>
+        <td><a href="/personas/{{ row.person_id }}">{{ row.name }}</a></td>
+        <td>{{ row.group }}</td>
+        <td class="time">{{ row.first.strftime('%H:%M') }}</td>
+        <td class="time">{{ row.last.strftime('%H:%M') if row.marks > 1 else '' }}</td>
+        <td class="num mono">{{ '%.1f' | format(row.hours) if row.marks > 1 else '' }}</td>
+        <td class="num">{{ row.marks }}</td>
+      </tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">Sin marcas en ese rango.</p>{% endif %}
+</section>
+{% endblock %}
