@@ -1,251 +1,99 @@
-# Sistema de Reconocimiento Facial con IA
+# Portero
 
-Sistema completo de reconocimiento facial basado en inteligencia artificial para control de acceso, desarrollado en Python con interfaz gráfica profesional.
+Control de acceso y asistencia con rostro o PIN para laboratorios y oficinas. Corre en tu propio servidor, y las plantillas faciales no salen de tu red.
 
-## 🚀 Características Principales
+![Tablero con el movimiento del día](docs/img/tablero.png)
 
-- ✅ **Reconocimiento facial en tiempo real** con IA (ResNet-34, 99.38% precisión)
-- ✅ **Interfaz gráfica profesional** con PyQt6 y Material Design
-- ✅ **Sistema de fotos automático** - guarda todas las capturas organizadas
-- ✅ **Estadísticas con gráficos** usando matplotlib
-- ✅ **Anti-spoofing** - detección de persona real (liveness detection)
-- ✅ **Análisis de emociones** con IA
-- ✅ **Sistema de niveles de acceso** (1-5)
-- ✅ **Base de datos SQL** con logs completos
-- ✅ **Exportación de reportes** a CSV y gráficos PNG
+- **Dos credenciales.** Cada persona entra con su rostro, si lo autorizó, o con un PIN. Nadie está obligado a dar datos biométricos.
+- **Prueba de presencia.** El kiosco pide girar la cabeza a ambos lados en orden aleatorio, y así frena fotos y pantallas quietas. Los límites están en [docs/seguridad.md](docs/seguridad.md).
+- **Permisos por puerta y horario.** Incluye turnos nocturnos y fechas de vencimiento para visitantes.
+- **Asistencia.** Primera y última marca por día, con CSV que Excel abre bien.
+- **Datos personales bajo control.** Registro de autorización, exportación, supresión y retención automática. Ver [docs/privacidad.md](docs/privacidad.md).
+- **Historial a prueba de alteraciones.** Cada registro firma al anterior, y `portero audit` señala la fila modificada.
+- **Se conecta a cualquier cerradura.** Portero envía un aviso firmado a la URL que indiques. Hay un [receptor de ejemplo](examples/receptor_puerta.py) para Raspberry Pi.
 
-## 📦 Instalación Rápida
+| El kiosco pide un giro | Teclado de PIN |
+|---|---|
+| ![Kiosco durante la prueba de presencia](docs/img/kiosco.png) | ![Teclado de PIN del kiosco](docs/img/kiosco-pin.png) |
 
-### Opción 1: Instalación Automática (Recomendado) 🚀
+## Probarlo en 3 minutos
 
-**Linux/Mac:**
-```bash
-git clone <URL_DE_TU_REPOSITORIO>
-cd ControlAccess
-./setup.sh
-./run_gui.sh
-```
-
-**Windows:**
-```cmd
-git clone <URL_DE_TU_REPOSITORIO>
-cd ControlAccess
-setup.bat
-run_gui.bat
-```
-
-### Opción 2: Instalación Manual
-
-### 1. Clonar el repositorio
+Necesitas [uv](https://docs.astral.sh/uv/). No hace falta compilar nada ni tener GPU.
 
 ```bash
-git clone <URL_DE_TU_REPOSITORIO>
-cd ControlAccess
+git clone https://github.com/fabiiianac15/AccessControl.git
+cd AccessControl
+uv sync
+uv run portero demo                 # opcional: personas y eventos inventados
+uv run portero admin coordinador    # crea tu cuenta (pide una contraseña)
+uv run portero serve                # la primera vez descarga los modelos (39 MB)
 ```
 
-### 2. Crear entorno virtual
+Abre <http://localhost:8000>. Para probar el kiosco en el mismo equipo:
 
-**Linux/Mac:**
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
+1. En **Puertas**, crea una zona y un kiosco.
+2. Abre el enlace que aparece. Solo se muestra una vez.
+3. En **Personas**, agrega a alguien, imprime y registra su autorización, y captura su rostro.
+4. Dale un permiso para esa zona y ponte frente al kiosco.
 
-**Windows:**
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
+Si cargaste la demostración, usa otra carpeta para el uso real (`PORTERO_DATA_DIR=datos-reales`): la demo solo sirve para explorar el panel.
 
-### 3. Instalar dependencias
-
-```bash
-pip install -r requirements.txt
-```
-
-**Nota:** En algunos sistemas puede requerir instalar dependencias adicionales:
-
-**Arch Linux:**
-```bash
-sudo pacman -S cmake python-pip
-```
-
-**Ubuntu/Debian:**
-```bash
-sudo apt-get install cmake python3-pip python3-dev
-```
-
-**Windows:** 
-- Instala Visual Studio Build Tools si hay problemas con dlib
-
-### 4. Ejecutar el sistema
+## Instalarlo en una puerta
 
 ```bash
-./run_gui.sh          # Linux/Mac
-# o
-run_gui.bat           # Windows
-# o
-python scripts/gui_professional.py  # Cualquier sistema
+cp .env.example .env                # pon el nombre y el contacto de tu organización
+docker compose up -d
+docker compose exec portero /app/.venv/bin/portero admin coordinador
 ```
 
-## 🎯 Uso Rápido
+El panel queda en `https://<IP-del-servidor>`. Los navegadores solo permiten la cámara con HTTPS o en localhost, y Caddy crea un certificado local para eso. Cada equipo mostrará una advertencia la primera vez.
 
-1. **Primera vez**: Ve a la pestaña "👤 Registro" y registra tu primer usuario
-2. **Verificar acceso**: En "🔐 Verificación" haz clic en "Iniciar Verificación"
-3. **Ver estadísticas**: Pestaña "📈 Estadísticas" muestra gráficos profesionales
-4. **Análisis IA**: En "🤖 Análisis IA" puedes ver el análisis en tiempo real
+En cada kiosco basta un navegador en pantalla completa, una tablet o un mini PC con webcam. Antes de operar con personas reales, lee [la lista de seguridad](docs/seguridad.md#antes-de-instalar-en-una-puerta-real) y [lo que le corresponde a tu organización](docs/privacidad.md#qué-le-corresponde-a-tu-organización).
 
-## 📋 Requisitos del Sistema
+## Comandos
 
-- **Python:** 3.8 o superior (probado en 3.13)
-- **RAM:** Mínimo 4GB (recomendado 8GB)
-- **Cámara web:** Para reconocimiento en tiempo real
-- **Sistema operativo:** Windows 10+, Linux, macOS
+| Comando | Qué hace |
+|---|---|
+| `portero serve` | Inicia el servidor |
+| `portero admin <usuario> [--role viewer]` | Crea una cuenta o restablece su contraseña |
+| `portero audit` | Verifica las cadenas de registros. Sale con código 1 si hay alteraciones |
+| `portero purge` | Aplica la retención. Prográmalo a diario |
+| `portero models` | Descarga y verifica los modelos |
+| `portero demo` | Carga datos inventados en una base vacía |
 
-## Estructura del Proyecto
+La configuración se hace con variables de entorno, todas en [.env.example](.env.example).
 
-\`\`\`
-scripts/
-├── face_recognition_system.py  # Núcleo del sistema de reconocimiento
-├── register_user.py            # Registro de usuarios
-├── access_control.py           # Sistema de control de acceso
-├── quick_access.py             # Verificación rápida
-├── database_manager.py         # Gestión de base de datos y logs
-├── view_logs.py                # Visualización de logs
-└── admin_panel.py              # Panel de administración completo
+## Cómo está hecho
 
-face_database.pkl               # Base de datos de rostros
-access_control.db               # Base de datos SQL (logs y estadísticas)
-backups/                        # Copias de seguridad
-temp_images/                    # Imágenes temporales
-\`\`\`
+```
+Kiosco (navegador)  ── cuadros JPEG ──▶  Servidor FastAPI  ── aviso firmado ──▶  Cerradura
+Panel (navegador)   ◀── HTML ─────────▶  ├ YuNet + SFace (OpenCV, solo CPU)
+                                         └ SQLite: plantillas cifradas, eventos firmados
+```
 
-## Documentación
+Las decisiones se toman en el servidor. El panel es HTML generado en el servidor con muy poco JavaScript, y las fuentes están incluidas: nada depende de internet ni de un paso de compilación.
 
-- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - Guía de uso para usuarios
-- **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Guía completa de administración
+Corre en un solo proceso, porque la galería de rostros y las sesiones del kiosco viven en memoria. Alcanza para una sede, pero no está pensado para escalar a varios servidores.
 
-## Características Técnicas
+```bash
+uv run pytest        # 200+ pruebas; las de modelos descargan los ONNX si faltan
+uv run ruff check .
+uv run mypy
+```
 
-### Reconocimiento Facial
-- Basado en deep learning (dlib)
-- Detección de rostros en tiempo real
-- Encodings faciales de 128 dimensiones
-- Tolerancia ajustable para precisión
+## Qué tan bien funciona
 
-### Base de Datos
-- **Rostros:** Pickle (encodings + metadata)
-- **Logs:** SQLite (accesos, eventos, estadísticas)
-- Índices optimizados para consultas rápidas
-- Sistema de backups integrado
+Con 3.200 pares de LFW y el umbral por defecto: 0 falsas aceptaciones entre 1.600 pares de personas distintas y 3,88 % de falso rechazo por par. En 600 fotos con inclinación simulada, ninguna logró imitar los dos giros. [docs/evaluacion.md](docs/evaluacion.md) explica cómo se midió y por qué estas cifras no reemplazan una prueba con tu propia gente.
 
-### Seguridad
-- Encodings irreversibles (no se guardan imágenes)
-- Niveles de acceso granulares
-- Auditoría completa de eventos
-- Logs persistentes de todos los accesos
+**Aún no probado:** la prueba de presencia con personas frente a una cámara real, cerraduras físicas y Raspberry Pi. Se validó con cámara simulada, fotos reales y un receptor de puerta por red.
 
-### Reportes
-- Reportes diarios, semanales y mensuales
-- Estadísticas de usuarios y accesos
-- Exportación a CSV
-- Gráficos de actividad por hora
+## Más documentación
 
-## Casos de Uso
-
-### Empresas
-- Control de acceso a oficinas
-- Registro de asistencia
-- Acceso a áreas restringidas
-- Auditoría de seguridad
-
-### Instituciones Educativas
-- Control de acceso a laboratorios
-- Registro de entrada/salida
-- Acceso a áreas administrativas
-
-### Residencias
-- Control de acceso de residentes
-- Registro de visitantes
-- Seguridad perimetral
-
-### Eventos
-- Verificación de asistentes
-- Control de acceso VIP
-- Registro de participantes
-
-## Configuración Avanzada
-
-### Ajustar Tolerancia
-
-Edita el sistema para cambiar la tolerancia:
-
-\`\`\`python
-# Más estricto (menos falsos positivos)
-system = FacialRecognitionSystem(tolerance=0.5)
-
-# Más permisivo (menos falsos negativos)
-system = FacialRecognitionSystem(tolerance=0.7)
-\`\`\`
-
-### Cambiar Base de Datos
-
-\`\`\`python
-system = FacialRecognitionSystem(database_path="mi_base_datos.pkl")
-db = DatabaseManager(db_path="mi_logs.db")
-\`\`\`
-
-## Solución de Problemas
-
-### No se detecta rostro
-- Verifica iluminación adecuada
-- Asegura que el rostro esté de frente
-- Evita accesorios que cubran el rostro
-
-### Cámara no funciona
-- Verifica que la cámara esté conectada
-- Cierra otras aplicaciones usando la cámara
-- En Linux, verifica permisos de /dev/video0
-
-### Baja precisión
-- Ajusta la tolerancia
-- Re-registra usuarios con mejores fotos
-- Verifica calidad de iluminación
-
-## Tecnologías Utilizadas
-
-- **face_recognition:** Reconocimiento facial con deep learning
-- **OpenCV:** Procesamiento de video e imágenes
-- **NumPy:** Operaciones numéricas
-- **SQLite:** Base de datos para logs
-- **Pickle:** Persistencia de encodings
-
-## Seguridad y Privacidad
-
-- Los encodings faciales son representaciones matemáticas irreversibles
-- No se almacenan imágenes originales (solo temporales durante registro)
-- Base de datos encriptable para mayor seguridad
-- Logs completos para auditoría
-- Cumple con mejores prácticas de privacidad
+- [Seguridad](docs/seguridad.md): qué ataques detiene y cuáles no.
+- [Privacidad](docs/privacidad.md): Ley 1581 y qué le queda a tu organización.
+- [Evaluación](docs/evaluacion.md): mediciones y cómo reproducirlas.
+- [Proyección](docs/proyeccion.md): de dónde viene el proyecto y hacia dónde puede ir.
 
 ## Licencia
 
-Este proyecto es de código abierto y está disponible para uso educativo y comercial.
-
-## Contribuciones
-
-Las contribuciones son bienvenidas. Por favor:
-1. Fork el proyecto
-2. Crea una rama para tu feature
-3. Commit tus cambios
-4. Push a la rama
-5. Abre un Pull Request
-
-## Soporte
-
-Para problemas o preguntas:
-1. Revisa la documentación
-2. Consulta las guías de uso
-3. Revisa los logs del sistema
-4. Abre un issue en el repositorio
-\`\`\`
+MIT. Los modelos se descargan de [opencv_zoo](https://github.com/opencv/opencv_zoo) con sus propias licencias, y las fuentes IBM Plex usan la licencia SIL OFL.
