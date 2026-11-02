@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Portero{% endblock %} · {{ org_name }}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  {% block head %}{% endblock %}
+</head>
+<body>
+<div class="shell">
+  <aside class="side no-print">
+    <a class="brand" href="/">Portero<small>{{ org_name }}</small></a>
+    <nav class="nav" aria-label="Principal">
+      {% for key, href, label in [
+        ('hoy', '/', 'Hoy'), ('personas', '/personas', 'Personas'), ('puertas', '/puertas', 'Puertas'),
+        ('eventos', '/eventos', 'Eventos'), ('asistencia', '/asistencia', 'Asistencia'),
+        ('bitacora', '/bitacora', 'Bitácora'), ('privacidad', '/privacidad', 'Privacidad')] %}
+      <a href="{{ href }}"{% if active_nav == key %} aria-current="page"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+    {% if admin %}
+    <div class="side-foot">
+      <a href="/cuenta">{{ admin.username }}{% if admin.role == 'viewer' %} (lectura){% endif %}</a>
+      <form method="post" action="/logout">
+        <input type="hidden" name="csrf" value="{{ admin.csrf_token }}">
+        <button class="linklike" type="submit">Cerrar sesión</button>
+      </form>
+    </div>
+    {% endif %}
+  </aside>
+  <main class="main">
+    {% if notice %}<div class="notice" role="status">{{ notice }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

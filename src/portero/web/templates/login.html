@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · Portero</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+</head>
+<body>
+<main class="login">
+  <div class="login-card">
+    <div>
+      <h1>Portero</h1>
+      <p class="muted">{{ org_name }}</p>
+    </div>
+    {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+    {% if not has_admins %}
+    <div class="alert">
+      Aún no hay cuentas. Crea la primera en el servidor:
+      <code>portero admin tu-usuario</code>
+    </div>
+    {% endif %}
+    <form class="form panel" method="post" action="/login">
+      <label class="field"><span>Usuario</span>
+        <input type="text" name="username" autocomplete="username" required autofocus></label>
+      <label class="field"><span>Contraseña</span>
+        <input type="password" name="password" autocomplete="current-password" required></label>
+      <button class="btn btn-primary" type="submit">Entrar</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

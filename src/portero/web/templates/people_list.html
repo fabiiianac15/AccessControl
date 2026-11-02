@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Personas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Personas</h1>
+  {% if admin.role == 'admin' %}<a class="btn btn-primary" href="/personas/nueva">Agregar persona</a>{% endif %}
+</div>
+<form class="row" method="get">
+  <label class="field"><span>Buscar</span><input type="search" name="q" value="{{ q }}" placeholder="Nombre o documento"></label>
+  <label class="field"><span>Grupo</span>
+    <select name="grupo"><option value="">Todos</option>
+      {% for group in groups %}<option{% if group == grupo %} selected{% endif %}>{{ group }}</option>{% endfor %}
+    </select></label>
+  <button class="btn" type="submit">Filtrar</button>
+</form>
+<section class="panel panel-flush">
+  {% if people %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Nombre</th><th>Grupo</th><th>Credenciales</th><th>Último acceso</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for person in people %}
+      <tr>
+        <td><a href="/personas/{{ person.id }}">{{ person.full_name }}</a></td>
+        <td>{{ person.group_name }}</td>
+        <td>
+          {% if person.samples %}<span class="tag">Rostro</span>{% endif %}
+          {% if person.pin_lookup %}<span class="tag">PIN</span>{% endif %}
+          {% if not person.samples and not person.pin_lookup %}<span class="tag tag-warn">Sin credencial</span>{% endif %}
+        </td>
+        <td class="time">{{ local_time(person.last_access) }}</td>
+        <td>{% if person.active %}Activa{% else %}<span class="tag tag-denied">Inactiva</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="empty">{% if q or grupo %}Ninguna persona coincide con ese filtro.{% else %}Aún no hay personas registradas.{% endif %}</p>
+  {% endif %}
+</section>
+{% endblock %}

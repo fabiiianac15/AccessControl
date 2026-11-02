@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui %}
+{% block title %}Eventos{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Eventos</h1>
+  <a class="btn" href="/eventos.csv?desde={{ desde }}&hasta={{ hasta }}&resultado={{ resultado }}&q={{ q | urlencode }}">Descargar CSV</a>
+</div>
+<form class="row" method="get">
+  <label class="field"><span>Desde</span><input type="date" name="desde" value="{{ desde }}"></label>
+  <label class="field"><span>Hasta</span><input type="date" name="hasta" value="{{ hasta }}"></label>
+  <label class="field"><span>Resultado</span><select name="resultado">
+    <option value="">Todos</option>
+    <option value="granted"{% if resultado == 'granted' %} selected{% endif %}>Concedidos</option>
+    <option value="denied"{% if resultado == 'denied' %} selected{% endif %}>Denegados</option></select></label>
+  <label class="field"><span>Persona</span><input type="search" name="q" value="{{ q }}"></label>
+  <button class="btn" type="submit">Filtrar</button>
+</form>
+<section class="panel panel-flush">
+  {% if events %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Fecha</th><th>Persona</th><th>Zona</th><th>Método</th><th>Resultado</th><th>Detalle</th><th class="num">Similitud</th><th>Puerta</th></tr></thead>
+    <tbody>{% for event in events %}
+      <tr>
+        <td class="time">{{ local_time(event.ts, '%d/%m %H:%M:%S') }}</td>
+        <td>{{ ui.person_label(event) }}</td>
+        <td>{{ event.zone_name or '' }}</td>
+        <td>{{ 'Rostro' if event.method == 'face' else 'PIN' }}</td>
+        <td>{{ ui.outcome_tag(event.outcome) }}</td>
+        <td class="muted small">{{ reasons.get(event.reason, event.reason) }}{% if event.photo_file and admin.role == 'admin' %} · <a href="/eventos/{{ event.id }}/foto">Foto</a>{% endif %}</td>
+        <td class="num mono">{{ '%.2f' | format(event.score) if event.score is not none else '' }}</td>
+        <td class="small">{% if event.door_status == 'failed' %}<span class="tag tag-warn">Sin respuesta</span>{% elif event.door_status == 'opened' %}Abierta{% endif %}</td>
+      </tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">Ningún evento en ese rango.</p>{% endif %}
+</section>
+{% endblock %}

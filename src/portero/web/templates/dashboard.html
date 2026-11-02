@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui %}
+{% block title %}Hoy{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ today }}</h1></div>
+  <div class="actions no-print"><a class="btn" href="/eventos">Ver todos los eventos</a></div>
+</div>
+
+{% for item in summary.suspicious %}
+<div class="alert alert-danger" role="alert">
+  {{ item.total }} rechazos en la última hora: {{ reasons[item.reason] }}.
+  <a href="/eventos?resultado=denied">Revisar</a>
+</div>
+{% endfor %}
+{% if summary.kiosks_offline %}
+<div class="alert">Sin señal hace más de 5 minutos: {{ summary.kiosks_offline | join(', ') }}.</div>
+{% endif %}
+{% if summary.pending_people %}
+<div class="alert">{{ summary.pending_people }} personas activas no tienen rostro ni PIN, así que no pueden entrar.
+  <a href="/personas">Ver personas</a></div>
+{% endif %}
+
+<section class="kpis" aria-label="Resumen de hoy">
+  <div class="kpi"><strong>{{ summary.granted }}</strong><span>accesos concedidos</span></div>
+  <div class="kpi {{ 'is-denied' if summary.denied }}"><strong>{{ summary.denied }}</strong><span>denegados</span></div>
+  <div class="kpi"><strong>{{ summary.present }}</strong><span>personas distintas</span></div>
+  <div class="kpi"><strong>{{ summary.kiosks_total - summary.kiosks_offline | length }}/{{ summary.kiosks_total }}</strong><span>kioscos en línea</span></div>
+</section>
+
+<section class="panel">
+  <div class="page-head">
+    <h2>Movimiento por hora</h2>
+    <div class="legend"><span><i class="l-granted"></i>Concedidos</span><span><i class="l-denied"></i>Denegados</span></div>
+  </div>
+  {{ chart }}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-title"><h2>Minuta</h2><span class="muted small">Se actualiza sola</span></div>
+  {% if events %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Hora</th><th>Persona</th><th class="hide-sm">Zona</th><th>Resultado</th><th class="hide-sm">Detalle</th></tr></thead>
+    <tbody id="live-events" data-last="{{ events[0].id }}">
+      {% for event in events %}
+      <tr>
+        <td class="time">{{ local_time(event.ts, '%H:%M:%S') if local_time(event.ts, '%Y-%m-%d') == today_iso else local_time(event.ts, '%d/%m %H:%M') }}</td>
+        <td>{{ ui.person_label(event) }}</td>
+        <td class="hide-sm">{{ event.zone_name or '' }}</td>
+        <td>{{ ui.outcome_tag(event.outcome) }}</td>
+        <td class="muted small hide-sm">{{ reasons.get(event.reason, event.reason) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="table-scroll"><table><tbody id="live-events" data-last="0"></tbody></table></div>
+  <p class="empty">Todavía no hay movimientos. Crea una zona y un kiosco en <a href="/puertas">Puertas</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/js/live.js"></script>{% endblock %}

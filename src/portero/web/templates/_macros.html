@@ -1,0 +1,11 @@
+{% macro csrf_field(admin) %}<input type="hidden" name="csrf" value="{{ admin.csrf_token }}">{% endmacro %}
+
+{% macro outcome_tag(outcome) %}
+<span class="tag {{ 'tag-granted' if outcome == 'granted' else 'tag-denied' }}">{{ 'Concedido' if outcome == 'granted' else 'Denegado' }}</span>
+{% endmacro %}
+
+{% macro person_label(event) %}
+{%- if event.full_name %}<a href="/personas/{{ event.person_id }}">{{ event.full_name }}</a>
+{%- elif event.person_id %}<span class="muted">Persona suprimida #{{ event.person_id }}</span>
+{%- else %}<span class="muted">Desconocido</span>{% endif -%}
+{% endmacro %}

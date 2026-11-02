@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui %}
+{% block title %}Cuenta{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Cuenta de {{ admin.username }}</h1></div>
+<form class="form panel" method="post" action="/cuenta/contrasena">
+  {{ ui.csrf_field(admin) }}
+  <h2>Cambiar contraseña</h2>
+  <label class="field"><span>Contraseña actual</span><input type="password" name="current" autocomplete="current-password" required></label>
+  <label class="field"><span>Contraseña nueva</span><input type="password" name="new" autocomplete="new-password" required minlength="12">
+    <span class="hint">Mínimo 12 caracteres. Se cerrarán todas tus sesiones.</span></label>
+  <div><button class="btn btn-primary" type="submit">Cambiar</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}PIN generado{% endblock %}
+{% block content %}
+<div class="page-head"><h1>PIN de {{ person.full_name }}</h1></div>
+<div class="once">
+  <div class="pin-big" aria-label="PIN">{{ pin }}</div>
+  <p>Entrégalo ahora en privado. Portero guarda solo una huella cifrada: al salir de esta página no se puede volver a ver.</p>
+</div>
+<div><a class="btn btn-primary" href="/personas/{{ person.id }}">Ya lo entregué</a></div>
+{% endblock %}
