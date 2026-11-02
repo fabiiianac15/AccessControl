@@ -1,0 +1,43 @@
+# `docker compose up -d` deja el panel en https://<IP-del-servidor>.
+# Caddy crea un certificado propio: cada navegador lo aceptará una vez. Los navegadores solo
+# permiten usar la cámara en HTTPS o en localhost, así que este paso es necesario para los kioscos.
+services:
+  portero:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Estas dos mandan sobre el .env: dentro del contenedor los datos siempre van en el volumen.
+      PORTERO_DATA_DIR: /data
+      PORTERO_HOST: 0.0.0.0
+      # Confía en el encabezado X-Forwarded-Proto de Caddy para marcar las cookies como Secure.
+      FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - portero-data:/data
+    expose:
+      - "8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - portero
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+
+volumes:
+  portero-data:
+  caddy-data:

@@ -1,0 +1,16 @@
+{
+	# Certificados de una CA local: sirven en una red sin dominio público.
+	local_certs
+	skip_install_trust
+}
+
+:443 {
+	tls internal {
+		on_demand
+	}
+	reverse_proxy portero:8000
+}
+
+:80 {
+	redir https://{host}{uri} permanent
+}
