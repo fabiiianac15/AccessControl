@@ -36,3 +36,14 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Datos de ejecución de Portero: base de datos, clave maestra, modelos y fotos
+data/
+*.key
+face_database.pkl
+
+# Pruebas
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
